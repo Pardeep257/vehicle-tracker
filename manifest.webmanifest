@@ -1,0 +1,9 @@
+{
+  "name": "RJK Logistics Control Tower V2",
+  "short_name": "RJK Control",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#06101d",
+  "theme_color": "#07111f",
+  "description": "Secure, shift-aware logistics operations control tower."
+}

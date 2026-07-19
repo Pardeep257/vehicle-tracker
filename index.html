@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="Secure, shift-aware logistics operations control tower.">
+  <title>RJK Logistics Control Tower V2</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css?v=2.0.0">
+</head>
+<body>
+  <section class="auth-screen" id="authScreen">
+    <div class="auth-art">
+      <div class="auth-brand"><span>R</span><strong>RJK Logistics Control Tower</strong></div>
+      <div class="auth-copy">
+        <p class="eyebrow">SECURE OPERATIONS PLATFORM</p>
+        <h1>Shift-aware logistics intelligence built for live hub control.</h1>
+        <p>Trip-level vehicle tracking, 2-hour SLA monitoring, operational-date analytics and role-based access from one screen.</p>
+      </div>
+      <div class="auth-features">
+        <span>✓ Shift 3 operational-date engine</span>
+        <span>✓ 10-second silent live sync</span>
+        <span>✓ Individual access permissions</span>
+        <span>✓ Excel, CSV and Google Sheet export</span>
+      </div>
+    </div>
+
+    <div class="auth-panel">
+      <form id="loginForm" class="auth-card hidden">
+        <p class="eyebrow">WELCOME BACK</p>
+        <h2>Sign in</h2>
+        <p class="muted">Use your assigned User ID and password.</p>
+        <label>User ID<input id="loginUserId" autocomplete="username" required></label>
+        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+        <button class="primary full" id="loginButton" type="submit">Sign in</button>
+        <div class="form-message hidden" id="loginMessage"></div>
+      </form>
+
+      <form id="setupForm" class="auth-card hidden">
+        <p class="eyebrow">FIRST-TIME SETUP</p>
+        <h2>Create Master Admin</h2>
+        <p class="muted">This form appears only until the first Master Admin is created.</p>
+        <label>Setup Code<input id="setupCode" type="password" required></label>
+        <label>Master User ID<input id="setupUserId" required></label>
+        <label>Display Name<input id="setupDisplayName" value="Master Admin" required></label>
+        <label>Password<input id="setupPassword" type="password" minlength="8" required></label>
+        <label>Confirm Password<input id="setupConfirmPassword" type="password" minlength="8" required></label>
+        <button class="primary full" id="setupButton" type="submit">Create Master Admin</button>
+        <div class="form-message hidden" id="setupMessage"></div>
+      </form>
+
+      <div class="auth-loading" id="authLoading">
+        <div class="spinner"></div>
+        <p>Connecting securely…</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="app-shell hidden" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span>R</span>
+        <div><strong id="brandName">RJK Control Tower</strong><small>Next-gen logistics operations</small></div>
+      </div>
+
+      <nav id="navigation">
+        <button class="nav-item active" data-view="control" data-permission="dashboard">⌂ <span>Control Tower</span></button>
+        <button class="nav-item" data-view="docks" data-permission="docks">▦ <span>Dock & Vehicles</span></button>
+        <button class="nav-item" data-view="search" data-permission="search">⌕ <span>Trip Search</span></button>
+        <button class="nav-item" data-view="analytics" data-permission="analytics">↗ <span>Shift Analytics</span></button>
+        <button class="nav-item" data-view="alerts" data-permission="alerts">⚠ <span>Alerts</span><i id="navAlertCount">0</i></button>
+        <button class="nav-item" data-view="reports" data-permission="reports">▤ <span>Reports</span></button>
+        <button class="nav-item" data-view="users" data-permission="users">♙ <span>User Access</span></button>
+        <button class="nav-item" data-view="settings" data-permission="settings">⚙ <span>Settings</span></button>
+        <button class="nav-item" data-view="audit" data-permission="audit">◷ <span>Audit Log</span></button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="live-status">
+          <i id="liveDot"></i>
+          <div><strong id="liveState">Connecting</strong><small id="lastSyncText">Waiting for data</small></div>
+        </div>
+        <button class="ghost full" id="themeToggle">Switch theme</button>
+        <button class="ghost full" id="logoutButton">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-button" id="menuButton">☰</button>
+        <div>
+          <p class="eyebrow">RAJKOT HUB • SECURE LIVE OPERATIONS</p>
+          <h1 id="pageTitle">Control Tower</h1>
+        </div>
+        <div class="top-actions">
+          <div class="sync-countdown"><small>Next sync</small><strong id="nextSyncText">10s</strong></div>
+          <div class="user-chip"><span id="userInitial">A</span><div><strong id="userDisplayName">Admin</strong><small id="userRole">Master Admin</small></div></div>
+          <button class="refresh-button" id="refreshButton" title="Refresh now">↻</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-control">
+        <div class="hero-panel">
+          <div>
+            <p class="eyebrow">LIVE SHIFT INTELLIGENCE</p>
+            <h2>Operational control without losing the shift context.</h2>
+            <p>Shift 3 stays under the shift-start operational date until 08:00, while actual after-midnight event times remain correct.</p>
+          </div>
+          <div class="hero-context">
+            <span id="contextDate">Operational Date —</span>
+            <strong id="contextShift">Shift —</strong>
+            <small>Tracker Shift column remains the final source of truth.</small>
+          </div>
+        </div>
+
+        <div class="kpi-grid" id="kpiGrid"></div>
+
+        <div class="control-actions">
+          <button class="secondary" id="downloadActiveCsv" data-permission="export">Download active CSV</button>
+          <button class="secondary" id="downloadActiveExcel" data-permission="export">Download active Excel</button>
+          <button class="secondary" id="copyHandover">Copy shift handover</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel span-2">
+            <div class="panel-head"><div><p class="eyebrow">ACTIVE TRIPS</p><h3>Vehicle + Trip ID live view</h3></div><span class="pill success" id="activeTripCount">0</span></div>
+            <div class="trip-grid" id="activeTripGrid"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">PRIORITY ACTIONS</p><h3>Critical alerts</h3></div><span class="pill danger" id="criticalCount">0</span></div>
+            <div class="alert-stack" id="priorityAlertList"></div>
+          </article>
+
+          <article class="panel span-3">
+            <div class="panel-head"><div><p class="eyebrow">SHIFT × PROCESS MATRIX</p><h3>FWD / RTO • IB / OB clear comparison</h3></div></div>
+            <div class="matrix-wrap" id="liveShiftMatrix"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-docks">
+        <div class="section-head">
+          <div><p class="eyebrow">DOCK CONTROL</p><h2>Dock & Vehicle Board</h2><p>Multiple active vehicles at the same dock remain visible as separate trips.</p></div>
+          <div class="section-actions">
+            <select id="dockTrackerFilter"><option value="">All trackers</option><option>FWD IB</option><option>FWD OB</option><option>RTO IB</option><option>RTO OB</option></select>
+            <button class="secondary" id="downloadDockCsv" data-permission="export">Download CSV</button>
+          </div>
+        </div>
+        <div class="dock-board" id="dockBoard"></div>
+      </section>
+
+      <section class="view" id="view-search">
+        <div class="section-head">
+          <div><p class="eyebrow">TRIP-LEVEL SEARCH</p><h2>Vehicle, Dock or Trip ID</h2><p>Every trip remains separate even when the same vehicle is used multiple times.</p></div>
+        </div>
+
+        <form class="search-console" id="searchForm">
+          <div class="search-row"><input id="searchInput" placeholder="Vehicle number, Dock 4 or Trip ID" required><button class="primary" id="searchButton">Search</button></div>
+          <div class="segments">
+            <label><input type="radio" name="searchType" value="auto" checked><span>Auto</span></label>
+            <label><input type="radio" name="searchType" value="vehicle"><span>Vehicle</span></label>
+            <label><input type="radio" name="searchType" value="dock"><span>Dock</span></label>
+            <label><input type="radio" name="searchType" value="trip"><span>Trip ID</span></label>
+          </div>
+        </form>
+
+        <div class="message hidden" id="searchMessage"></div>
+        <div class="search-summary hidden" id="searchSummary"></div>
+        <div class="search-actions hidden" id="searchActions"><button class="secondary" id="downloadSearchCsv" data-permission="export">Download result CSV</button><button class="secondary" id="downloadSearchExcel" data-permission="export">Download result Excel</button></div>
+
+        <article class="panel hidden" id="activeSearchBlock">
+          <div class="panel-head"><div><p class="eyebrow">CURRENT POSITION</p><h3 id="activeSearchTitle">Active trips</h3></div><span class="pill success" id="activeSearchCount">0</span></div>
+          <div class="trip-grid" id="activeSearchGrid"></div>
+        </article>
+
+        <article class="panel hidden" id="historySearchBlock">
+          <div class="panel-head"><div><p class="eyebrow">TRIP HISTORY</p><h3>Previous activity</h3></div><span class="pill" id="historySearchCount">0</span></div>
+          <div class="trip-grid" id="historySearchGrid"></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-analytics">
+        <div class="section-head">
+          <div><p class="eyebrow">CUSTOM OPERATIONAL ANALYSIS</p><h2>Shift Analytics</h2><p>Analyse any operational date, month, shift, tracker, route, dock, vehicle or Trip ID.</p></div>
+        </div>
+
+        <form class="filter-panel" id="analyticsForm">
+          <div class="quick-filters">
+            <button type="button" data-range="today">Today</button>
+            <button type="button" data-range="yesterday">Yesterday</button>
+            <button type="button" data-range="7days">Last 7 days</button>
+            <button type="button" data-range="month">This month</button>
+            <button type="button" data-range="clear">Clear</button>
+          </div>
+          <div class="filter-grid">
+            <label>From Operational Date<input type="date" id="filterFrom"></label>
+            <label>To Operational Date<input type="date" id="filterTo"></label>
+            <label>Month<input type="month" id="filterMonth"></label>
+            <label>Shift<select id="filterShift"><option value="">All shifts</option><option>Shift 1</option><option>Shift 2</option><option>Shift 3</option></select></label>
+            <label>Process<select id="filterProcess"><option value="">FWD + RTO</option><option>FWD</option><option>RTO</option></select></label>
+            <label>Movement<select id="filterMovement"><option value="">IB + OB</option><option>IB</option><option>OB</option></select></label>
+            <label>Tracker<select id="filterTracker"><option value="">All trackers</option><option>FWD IB</option><option>FWD OB</option><option>RTO IB</option><option>RTO OB</option></select></label>
+            <label>Route<select id="filterRoute"><option value="">All routes</option></select></label>
+            <label>Dock<select id="filterDock"><option value="">All docks</option></select></label>
+            <label>Vehicle<input id="filterVehicle" placeholder="Vehicle no"></label>
+            <label>Trip ID<input id="filterTrip" placeholder="Trip ID"></label>
+            <label>SLA<select id="filterSla"><option value="">All SLA</option><option>Within SLA</option><option>Breached</option><option>In Progress</option><option>Not Started</option><option>Missing Operation Time</option></select></label>
+            <label>Status<select id="filterStatus"><option value="">All status</option></select></label>
+            <label>Group By<select id="filterGroup"><option value="tracker">Tracker</option><option value="shift">Shift</option><option value="route">Route</option><option value="dockNo">Dock</option><option value="status">Status</option></select></label>
+          </div>
+          <button class="primary" id="runAnalyticsButton" type="submit">Run analysis</button>
+        </form>
+
+        <div class="analytics-actions hidden" id="analyticsActions">
+          <button class="secondary" id="downloadAnalyticsCsv" data-permission="export">CSV</button>
+          <button class="secondary" id="downloadAnalyticsExcel" data-permission="export">Excel</button>
+          <button class="secondary" id="createGoogleSheetButton" data-permission="export">Create Google Sheet</button>
+          <span id="analyticsRecordNote"></span>
+        </div>
+
+        <div class="analytics-kpis" id="analyticsKpis"></div>
+
+        <div class="analytics-grid">
+          <article class="panel span-2"><div class="panel-head"><div><p class="eyebrow">DAILY TREND</p><h3>Trips and shipments</h3></div></div><canvas id="dailyTrendChart" height="280"></canvas></article>
+          <article class="panel"><div class="panel-head"><div><p class="eyebrow">TOP ROUTES</p><h3>Shipment volume</h3></div></div><div class="metric-list" id="routeAnalysis"></div></article>
+          <article class="panel span-3"><div class="panel-head"><div><p class="eyebrow">SHIFT COMPARISON</p><h3>Shift 1 / 2 / 3 × four trackers</h3></div></div><div class="matrix-wrap" id="analyticsShiftMatrix"></div></article>
+          <article class="panel span-3"><div class="panel-head"><div><p class="eyebrow">FILTERED TRIPS</p><h3>Grouped operational records</h3></div></div><div class="grouped-table" id="analyticsTable"></div></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-alerts">
+        <div class="section-head">
+          <div><p class="eyebrow">AUTOMATED EXCEPTION CONTROL</p><h2>Alerts</h2><p>SLA breaches, stale entries, missing Trip IDs and duplicate active trips.</p></div>
+          <select id="alertFilter"><option value="">All alerts</option><option value="critical">Critical</option><option value="warning">Warning</option><option value="data">Data quality</option></select>
+        </div>
+        <div class="alert-summary" id="alertSummary"></div>
+        <div class="table-panel"><table><thead><tr><th>Priority</th><th>Operational Date</th><th>Shift</th><th>Tracker</th><th>Vehicle / Trip</th><th>Dock</th><th>Issue</th><th>Age</th></tr></thead><tbody id="alertTableBody"></tbody></table></div>
+      </section>
+
+      <section class="view" id="view-reports">
+        <div class="section-head"><div><p class="eyebrow">SHIFT HANDOVER</p><h2>Reports</h2><p>Copy or download a clean live summary without editing tracker data.</p></div></div>
+        <div class="report-layout">
+          <article class="panel"><div class="panel-head"><div><p class="eyebrow">LIVE HANDOVER</p><h3>Current operational summary</h3></div><div><button class="secondary" id="copyReport">Copy</button><button class="secondary" id="downloadReport">Download</button></div></div><pre id="reportText">Loading…</pre></article>
+          <article class="panel"><div class="panel-head"><div><p class="eyebrow">AUTOMATION</p><h3>Rules currently running</h3></div></div><div class="automation-list">
+            <div>✓ <span><strong>Shift 3 operational date</strong><small>After-midnight activity remains under shift-start date</small></span></div>
+            <div>✓ <span><strong>2-hour operation SLA</strong><small>Dock In to loading/unloading completion</small></span></div>
+            <div>✓ <span><strong>Silent live sync</strong><small>No page reload, filter reset or scroll movement</small></span></div>
+            <div>✓ <span><strong>Trip-level identity</strong><small>Vehicle and Trip ID remain visible together</small></span></div>
+            <div>✓ <span><strong>Read-only tracker access</strong><small>Live refresh never edits source tracker data</small></span></div>
+          </div></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-users">
+        <div class="section-head"><div><p class="eyebrow">ROLE-BASED ACCESS</p><h2>User Access</h2><p>Master Admin decides exactly which modules each user can open.</p></div><button class="primary" id="newUserButton">Create user</button></div>
+        <div class="user-layout">
+          <article class="panel"><div class="panel-head"><div><p class="eyebrow">USERS</p><h3>Active and inactive accounts</h3></div></div><div class="user-list" id="userList"></div></article>
+          <article class="panel"><div class="panel-head"><div><p class="eyebrow">USER EDITOR</p><h3 id="userEditorTitle">Create user</h3></div></div>
+            <form id="userForm" class="user-form">
+              <input type="hidden" id="editingUserId">
+              <label>User ID<input id="userIdInput" required></label>
+              <label>Display Name<input id="userNameInput" required></label>
+              <label>Role<select id="userRoleInput"><option>Viewer</option><option>Supervisor</option><option>Admin</option></select></label>
+              <label>Password<input id="userPasswordInput" type="password" placeholder="Required for new user"></label>
+              <label class="toggle-line"><input type="checkbox" id="userActiveInput" checked><span>Account active</span></label>
+              <div><span class="field-title">Module permissions</span><div class="permission-grid" id="permissionGrid"></div></div>
+              <button class="primary" type="submit">Save user</button>
+              <button class="secondary" type="button" id="resetUserForm">Clear</button>
+            </form>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="section-head"><div><p class="eyebrow">ADMIN CONFIGURATION</p><h2>Settings</h2><p>Change SLA and refresh settings without editing code.</p></div></div>
+        <article class="panel settings-panel">
+          <form id="settingsForm" class="settings-grid">
+            <label>Site Name<input id="settingSiteName"></label>
+            <label>Loading SLA (minutes)<input id="settingLoadingSla" type="number" min="30"></label>
+            <label>Unloading SLA (minutes)<input id="settingUnloadingSla" type="number" min="30"></label>
+            <label>Yard Waiting SLA (minutes)<input id="settingYardSla" type="number" min="10"></label>
+            <label>Dock Release SLA (minutes)<input id="settingDockRelease" type="number" min="5"></label>
+            <label>Stale Entry Window (hours)<input id="settingStaleHours" type="number" min="12"></label>
+            <label>Active Tab Refresh (seconds)<input id="settingRefresh" type="number" min="10"></label>
+            <label>Hidden Tab Refresh (seconds)<input id="settingHiddenRefresh" type="number" min="30"></label>
+            <label>Session Duration (hours)<input id="settingSessionHours" type="number" min="1"></label>
+            <label>Maximum Analytics Rows<input id="settingMaxRows" type="number" min="1000"></label>
+            <button class="primary" type="submit">Save settings</button>
+          </form>
+        </article>
+      </section>
+
+      <section class="view" id="view-audit">
+        <div class="section-head"><div><p class="eyebrow">SECURITY TRACE</p><h2>Audit Log</h2><p>Login, user management, settings and export activity.</p></div><button class="secondary" id="refreshAudit">Refresh</button></div>
+        <div class="table-panel"><table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody id="auditTableBody"></tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="config.js?v=2.0.0"></script>
+  <script src="app.js?v=2.0.0"></script>
+</body>
+</html>

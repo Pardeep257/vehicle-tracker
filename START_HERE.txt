@@ -1,0 +1,31 @@
+RJK CONTROL TOWER V2 — QUICK SETUP
+
+1. APPS SCRIPT
+   - Replace full Code.gs with apps-script/Code.gs
+   - Save
+   - Deploy > Manage deployments > Edit
+   - New version > Deploy
+
+2. GITHUB ROOT
+   Upload:
+   - .nojekyll
+   - index.html
+   - styles.css
+   - app.js
+   - config.js
+   - manifest.webmanifest
+   - service-worker.js
+
+3. OPEN WEBSITE
+   https://pardeep257.github.io/vehicle-tracker/?v=2
+
+4. FIRST MASTER ADMIN
+   Setup Code: RJK-SETUP-257
+   Create your own User ID and password.
+
+5. DEFAULT SLA
+   Loading: 120 minutes
+   Unloading: 120 minutes
+   Dock release: 30 minutes
+   Stale open entry: 48 hours
+   Live refresh: 10 seconds
