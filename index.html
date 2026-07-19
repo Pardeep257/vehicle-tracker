@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Hub Vehicle Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">LIVE DOCK OPERATIONS</p>
+        <h1>Hub Vehicle Tracker</h1>
+        <p class="subtext">Search by vehicle number or dock number across RTO IB, RTO OB, FWD IB and FWD OB.</p>
+      </div>
+      <div class="live-pill"><span class="dot"></span><span id="connectionText">Ready</span></div>
+    </header>
+
+    <section class="search-panel" aria-label="Vehicle tracker search">
+      <form id="searchForm">
+        <label for="searchInput">Vehicle number or dock number</label>
+        <div class="search-row">
+          <input id="searchInput" name="query" autocomplete="off" placeholder="Example: GJ03AB1234 or 4" required>
+          <button id="searchButton" type="submit">Search</button>
+        </div>
+        <div class="search-options">
+          <label><input type="radio" name="searchType" value="auto" checked> Auto</label>
+          <label><input type="radio" name="searchType" value="vehicle"> Vehicle</label>
+          <label><input type="radio" name="searchType" value="dock"> Dock</label>
+        </div>
+      </form>
+      <p id="demoNotice" class="notice hidden"></p>
+    </section>
+
+    <section id="summary" class="summary-grid hidden" aria-live="polite"></section>
+
+    <section id="messageBox" class="message-box hidden" aria-live="polite"></section>
+
+    <section id="activeSection" class="result-section hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">CURRENT POSITION</p>
+          <h2 id="activeHeading">Active vehicles</h2>
+        </div>
+        <span id="activeCount" class="count-badge">0</span>
+      </div>
+      <div id="activeResults" class="cards"></div>
+    </section>
+
+    <section id="historySection" class="result-section hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">PREVIOUS ACTIVITY</p>
+          <h2>Vehicle history</h2>
+        </div>
+        <span id="historyCount" class="count-badge muted">0</span>
+      </div>
+      <div id="historyResults" class="cards"></div>
+    </section>
+  </main>
+
+  <template id="vehicleCardTemplate">
+    <article class="vehicle-card">
+      <div class="card-top">
+        <div>
+          <p class="tracker-label"></p>
+          <h3 class="vehicle-number"></h3>
+        </div>
+        <span class="status-chip"></span>
+      </div>
+      <div class="detail-grid"></div>
+      <details class="more-details">
+        <summary>More details</summary>
+        <div class="extra-grid"></div>
+      </details>
+    </article>
+  </template>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
